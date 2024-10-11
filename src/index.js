@@ -5,7 +5,6 @@ const dotenv = require("dotenv");
 const routes = require("./routes");
 const cors = require("cors");
 const { errorHandler } = require("./middleware");
-const { swaggerUi, swaggerDocs } = require("./swagger");
 
 dotenv.config();
 const app = express();
@@ -14,9 +13,6 @@ app.use(cors());
 
 // Use routes
 app.use(routes);
-
-// Use Swagger UI
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Connect to MongoDB
 mongoose

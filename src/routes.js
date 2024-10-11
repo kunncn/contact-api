@@ -8,65 +8,7 @@ const { validate } = require("./middleware");
 
 const router = express.Router();
 
-/**
- * @swagger
- * components:
- *   securitySchemes:
- *     bearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
- *   schemas:
- *     User:
- *       type: object
- *       properties:
- *         name:
- *           type: string
- *         email:
- *           type: string
- *         password:
- *           type: string
- *         password_confirmation:
- *           type: string
- *     Contact:
- *       type: object
- *       properties:
- *         name:
- *           type: string
- *         phone:
- *           type: string
- *         email:
- *           type: string
- *         address:
- *           type: string
- */
-
-/**
- * @swagger
- * tags:
- *   name: User
- *   description: User management
- */
-
-// User Registration
-/**
- * @swagger
- * /api/register:
- *   post:
- *     summary: Register a new user
- *     tags: [User]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/User'
- *     responses:
- *       201:
- *         description: User registered successfully
- *       400:
- *         description: Invalid input or user already exists
- */
+// Register
 router.post(
   "/api/register",
   [
@@ -103,30 +45,7 @@ router.post(
   }
 );
 
-// User Login
-/**
- * @swagger
- * /api/login:
- *   post:
- *     summary: Login a user
- *     tags: [User]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: User logged in successfully
- *       400:
- *         description: Invalid credentials
- */
+// Login
 router.post(
   "/api/login",
   [
@@ -180,34 +99,7 @@ const authenticate = (req, res, next) => {
   });
 };
 
-/**
- * @swagger
- * tags:
- *   name: Contacts
- *   description: Contact management
- */
-
 // Create Contact
-/**
- * @swagger
- * /api/contact:
- *   post:
- *     summary: Create a new contact
- *     tags: [Contacts]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Contact'
- *     responses:
- *       201:
- *         description: Contact created successfully
- *       400:
- *         description: Invalid input
- */
 router.post(
   "/api/contact",
   authenticate,
@@ -231,45 +123,12 @@ router.post(
 );
 
 // Get Contacts
-/**
- * @swagger
- * /api/contact:
- *   get:
- *     summary: Get all contacts
- *     tags: [Contacts]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of contacts
- */
 router.get("/api/contact", authenticate, async (req, res) => {
   const contacts = await Contact.find({ userId: req.userId });
   res.status(200).json(contacts);
 });
 
 // Get Single Contact
-/**
- * @swagger
- * /api/contact/{id}:
- *   get:
- *     summary: Get a single contact
- *     tags: [Contacts]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: ID of the contact
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Contact found
- *       404:
- *         description: Contact not found
- */
 router.get("/api/contact/:id", authenticate, async (req, res) => {
   const contact = await Contact.findOne({
     _id: req.params.id,
@@ -282,33 +141,6 @@ router.get("/api/contact/:id", authenticate, async (req, res) => {
 });
 
 // Update Contact
-/**
- * @swagger
- * /api/contact/{id}:
- *   put:
- *     summary: Update a contact
- *     tags: [Contacts]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: ID of the contact
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Contact'
- *     responses:
- *       200:
- *         description: Contact updated successfully
- *       404:
- *         description: Contact not found
- */
 router.put("/api/contact/:id", authenticate, async (req, res) => {
   const contact = await Contact.findOne({
     _id: req.params.id,
@@ -325,27 +157,6 @@ router.put("/api/contact/:id", authenticate, async (req, res) => {
 });
 
 // Delete Contact
-/**
- * @swagger
- * /api/contact/{id}:
- *   delete:
- *     summary: Delete a contact
- *     tags: [Contacts]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: ID of the contact
- *         schema:
- *           type: string
- *     responses:
- *       204:
- *         description: Contact deleted successfully
- *       404:
- *         description: Contact not found
- */
 router.delete("/api/contact/:id", authenticate, async (req, res) => {
   const contact = await Contact.findOne({
     _id: req.params.id,
