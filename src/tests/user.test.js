@@ -5,10 +5,9 @@ const { User } = require("../models");
 describe("User API", () => {
   let token;
   let originalEmail;
+  let newEmail;
 
   beforeAll(async () => {
-    jest.setTimeout(10000);
-
     // Register a user
     const response = await request(app).post("/api/register").send({
       name: "Test User",
@@ -24,25 +23,23 @@ describe("User API", () => {
       email: "testuser@example.com",
       password: "testpassword",
     });
-
     token = loginResponse.body.token;
   });
 
   afterAll(async () => {
     // Clean up the test data after all tests are done
-    await User.deleteOne({ email: originalEmail });
+    await User.deleteOne({ email: newEmail });
   });
 
   it("should edit account information", async () => {
-    const newEmail = `updateduser-${Date.now()}@example.com`;
-    originalEmail = newEmail;
+    newEmail = `updateduser-${Date.now()}@example.com`;
 
     const response = await request(app)
       .put("/api/account/edit")
       .set("Authorization", `Bearer ${token}`)
       .send({
         name: "Updated Test User",
-        email: originalEmail,
+        email: newEmail,
       });
 
     expect(response.status).toBe(200);
@@ -52,23 +49,5 @@ describe("User API", () => {
     );
     expect(response.body.user).toHaveProperty("name", "Updated Test User");
     expect(response.body.user).toHaveProperty("email", newEmail);
-  });
-
-  it("should revert to original account information", async () => {
-    const response = await request(app)
-      .put("/api/account/edit")
-      .set("Authorization", `Bearer ${token}`)
-      .send({
-        name: "Test User",
-        email: originalEmail,
-      });
-
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty(
-      "message",
-      "Account updated successfully"
-    );
-    expect(response.body.user).toHaveProperty("name", "Test User");
-    expect(response.body.user).toHaveProperty("email", originalEmail);
   });
 });

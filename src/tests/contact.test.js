@@ -7,8 +7,6 @@ describe("Contact API", () => {
   let originalEmail;
 
   beforeAll(async () => {
-    jest.setTimeout(10000);
-
     // Register a user
     const response = await request(app).post("/api/register").send({
       name: "Test User",
