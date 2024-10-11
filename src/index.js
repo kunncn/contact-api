@@ -14,14 +14,14 @@ app.use(cors());
 // Use routes
 app.use(routes);
 
+// Error handling middleware
+app.use(errorHandler);
+
 // Connect to MongoDB
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error(err));
-
-// Error handling middleware
-app.use(errorHandler);
 
 // Start the server but do not listen on it for tests
 if (process.env.NODE_ENV !== "test") {

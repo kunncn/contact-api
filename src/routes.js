@@ -17,7 +17,7 @@ const {
   loginValidationRules,
   editAccountValidationRules,
   contactValidationRules,
-} = require("./validation"); // Import the validation rules
+} = require("./validation");
 
 const router = express.Router();
 
