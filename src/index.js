@@ -3,12 +3,14 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const routes = require("./routes");
+const cors = require("cors");
 const { errorHandler } = require("./middleware");
 const { swaggerUi, swaggerDocs } = require("./swagger");
 
 dotenv.config();
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 // Use routes
 app.use(routes);
