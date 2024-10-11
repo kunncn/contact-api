@@ -3,14 +3,17 @@ const { body } = require("express-validator");
 const { validate, authenticate } = require("./middleware");
 
 const {
-  registerUser,
-  loginUser,
   createContact,
   getContacts,
   getContact,
   updateContact,
   deleteContact,
 } = require("./controllers/contactController");
+const {
+  registerUser,
+  loginUser,
+  editUserAccount,
+} = require("./controllers/userController");
 
 const router = express.Router();
 
@@ -43,6 +46,30 @@ router.post(
   ],
   validate,
   loginUser
+);
+
+// Edit user account route
+router.put(
+  "/api/account/edit",
+  authenticate, // Ensure the user is logged in
+  [
+    body("name").optional().notEmpty().withMessage("Name cannot be empty"),
+    body("email").optional().isEmail().withMessage("Invalid email"),
+    body("password")
+      .optional()
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters long"),
+    body("password_confirmation")
+      .optional()
+      .custom((value, { req }) => {
+        if (value !== req.body.password) {
+          throw new Error("Password confirmation does not match password");
+        }
+        return true;
+      }),
+  ],
+  validate, // Middleware to handle validation errors
+  editUserAccount // Call the controller function
 );
 
 // Contacts
