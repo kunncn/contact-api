@@ -1,7 +1,5 @@
 const express = require("express");
-const { body } = require("express-validator");
 const { validate, authenticate } = require("./middleware");
-
 const {
   createContact,
   getContacts,
@@ -14,60 +12,26 @@ const {
   loginUser,
   editUserAccount,
 } = require("./controllers/userController");
+const {
+  userValidationRules,
+  loginValidationRules,
+  editAccountValidationRules,
+  contactValidationRules,
+} = require("./validation"); // Import the validation rules
 
 const router = express.Router();
 
 // Register
-router.post(
-  "/api/register",
-  [
-    body("name").notEmpty().withMessage("Name is required"),
-    body("email").isEmail().withMessage("Invalid email"),
-    body("password")
-      .isLength({ min: 6 })
-      .withMessage("Password must be at least 6 characters long"),
-    body("password_confirmation").custom((value, { req }) => {
-      if (value !== req.body.password) {
-        throw new Error("Password confirmation does not match password");
-      }
-      return true;
-    }),
-  ],
-  validate,
-  registerUser
-);
+router.post("/api/register", userValidationRules(), validate, registerUser);
 
 // Login
-router.post(
-  "/api/login",
-  [
-    body("email").isEmail().withMessage("Invalid email"),
-    body("password").notEmpty().withMessage("Password is required"),
-  ],
-  validate,
-  loginUser
-);
+router.post("/api/login", loginValidationRules(), validate, loginUser);
 
 // Edit user account route
 router.put(
   "/api/account/edit",
   authenticate, // Ensure the user is logged in
-  [
-    body("name").optional().notEmpty().withMessage("Name cannot be empty"),
-    body("email").optional().isEmail().withMessage("Invalid email"),
-    body("password")
-      .optional()
-      .isLength({ min: 6 })
-      .withMessage("Password must be at least 6 characters long"),
-    body("password_confirmation")
-      .optional()
-      .custom((value, { req }) => {
-        if (value !== req.body.password) {
-          throw new Error("Password confirmation does not match password");
-        }
-        return true;
-      }),
-  ],
+  editAccountValidationRules(), // Use validation for editing account
   validate, // Middleware to handle validation errors
   editUserAccount // Call the controller function
 );
@@ -76,10 +40,7 @@ router.put(
 router.post(
   "/api/contact",
   authenticate,
-  [
-    body("name").notEmpty().withMessage("Name is required"),
-    body("phone").isNumeric().withMessage("Phone must be a number"),
-  ],
+  contactValidationRules(), // Use validation for creating a contact
   validate,
   createContact
 );
