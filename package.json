@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node src/index.js",
+    "start": "nodemon src/index.js",
     "test": "jest --detectOpenHandles",
     "build": "npm install --omit=dev"
   },
@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
+    "nodemon": "^3.1.7",
     "supertest": "^7.0.0"
   }
 }

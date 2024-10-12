@@ -9,7 +9,9 @@ exports.registerUser = async (req, res) => {
   // Check if user already exists
   const existingUser = await User.findOne({ email });
   if (existingUser) {
-    return res.status(400).json({ message: "User already exists" });
+    return res
+      .status(400)
+      .json({ success: false, message: "User already exists" });
   }
 
   // Hash password
@@ -19,7 +21,9 @@ exports.registerUser = async (req, res) => {
   const newUser = new User({ name, email, passwordHash });
   await newUser.save();
 
-  res.status(201).json({ message: "User registered successfully" });
+  res
+    .status(201)
+    .json({ success: true, message: `User ${name} created successfully` });
 };
 
 // User login
@@ -29,13 +33,15 @@ exports.loginUser = async (req, res) => {
   // Find user
   const user = await User.findOne({ email });
   if (!user) {
-    return res.status(400).json({ message: "Invalid credentials" });
+    return res.status(400).json({ success: false, message: "Invalid Email." });
   }
 
   // Check password
   const isValid = await bcrypt.compare(password, user.passwordHash);
   if (!isValid) {
-    return res.status(400).json({ message: "Invalid credentials" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid Password." });
   }
 
   // Create token
@@ -43,7 +49,7 @@ exports.loginUser = async (req, res) => {
     expiresIn: "1h",
   });
 
-  res.status(200).json({ token });
+  res.status(200).json({ success: true, token });
 };
 
 // Controller to edit user account
@@ -51,7 +57,9 @@ exports.editUserAccount = async (req, res) => {
   try {
     const user = await User.findById(req.userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     const { name, email, password } = req.body;
@@ -65,9 +73,13 @@ exports.editUserAccount = async (req, res) => {
 
     await user.save();
 
-    res.status(200).json({ message: "Account updated successfully", user });
+    res.status(200).json({
+      success: true,
+      message: "Account updated successfully", // Fixed message
+      user,
+    });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

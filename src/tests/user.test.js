@@ -4,31 +4,31 @@ const { User } = require("../models");
 
 describe("User API", () => {
   let token;
-  let originalEmail;
+  let originalEmail = "testuser@example.com";
   let newEmail;
 
   beforeAll(async () => {
     // Register a user
-    const response = await request(app).post("/api/register").send({
+    await request(app).post("/api/register").send({
       name: "Test User",
-      email: "testuser@example.com",
+      email: originalEmail,
       password: "testpassword",
       password_confirmation: "testpassword",
     });
 
-    originalEmail = response.body.email;
-
     // Log in to get the token
     const loginResponse = await request(app).post("/api/login").send({
-      email: "testuser@example.com",
+      email: originalEmail,
       password: "testpassword",
     });
+
     token = loginResponse.body.token;
   });
 
   afterAll(async () => {
     // Clean up the test data after all tests are done
     await User.deleteOne({ email: newEmail });
+    await User.deleteOne({ email: originalEmail });
   });
 
   it("should edit account information", async () => {

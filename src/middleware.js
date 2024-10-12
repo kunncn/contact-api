@@ -28,7 +28,13 @@ const authenticate = (req, res, next) => {
 const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(400).json({
+      success: false,
+      errors: errors.array(),
+      message: `${errors.array()[0].msg} and Your input is ${
+        errors.array()[0].value
+      }`,
+    });
   }
   next();
 };
@@ -36,7 +42,7 @@ const validate = (req, res, next) => {
 // Middleware for error handling
 const errorHandler = (err, req, res, next) => {
   console.error(err);
-  res.status(500).json({ message: "Internal Server Error" });
+  res.status(500).json({ success: false, message: "Internal Server Error" });
 };
 
 module.exports = { validate, errorHandler, authenticate };

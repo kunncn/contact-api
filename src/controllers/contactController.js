@@ -12,13 +12,17 @@ exports.createContact = async (req, res) => {
     address,
   });
   await newContact.save();
-  res.status(201).json(newContact);
+  res.status(201).json({
+    success: true,
+    message: "Contact created successfully",
+    contact: newContact,
+  });
 };
 
 // Get all contacts
 exports.getContacts = async (req, res) => {
   const contacts = await Contact.find({ userId: req.userId });
-  res.status(200).json(contacts);
+  res.status(200).json({ success: true, contacts });
 };
 
 // Get a single contact
@@ -28,9 +32,11 @@ exports.getContact = async (req, res) => {
     userId: req.userId,
   });
   if (!contact) {
-    return res.status(404).json({ message: "Contact not found" });
+    return res
+      .status(404)
+      .json({ success: false, message: "Contact not found" });
   }
-  res.status(200).json(contact);
+  res.status(200).json({ success: true, contact });
 };
 
 // Update a contact
@@ -40,13 +46,17 @@ exports.updateContact = async (req, res) => {
     userId: req.userId,
   });
   if (!contact) {
-    return res.status(404).json({ message: "Contact not found" });
+    return res
+      .status(404)
+      .json({ success: false, message: "Contact not found" });
   }
 
   // Update contact fields
   Object.assign(contact, req.body);
   await contact.save();
-  res.status(200).json(contact);
+  res
+    .status(200)
+    .json({ success: true, message: "Contact updated successfully", contact });
 };
 
 // Delete a contact
@@ -56,9 +66,13 @@ exports.deleteContact = async (req, res) => {
     userId: req.userId,
   });
   if (!contact) {
-    return res.status(404).json({ message: "Contact not found" });
+    return res
+      .status(404)
+      .json({ success: false, message: "Contact not found" });
   }
 
   await Contact.deleteOne({ _id: req.params.id, userId: req.userId });
-  res.status(204).json();
+  res
+    .status(204)
+    .json({ success: true, message: "Contact deleted successfully" });
 };

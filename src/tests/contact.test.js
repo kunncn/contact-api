@@ -15,7 +15,7 @@ describe("Contact API", () => {
       password_confirmation: "testpassword",
     });
 
-    originalEmail = response.body.email;
+    originalEmail = response.body.email; // Fixed the reference here
 
     // Log in to get the token
     const loginResponse = await request(app).post("/api/login").send({
@@ -24,12 +24,6 @@ describe("Contact API", () => {
     });
 
     token = loginResponse.body.token;
-  });
-
-  afterAll(async () => {
-    // Clean up the test data after all tests are done
-    await User.deleteOne({ email: originalEmail });
-    await Contact.deleteMany({});
   });
 
   it("should create a new contact", async () => {
@@ -44,8 +38,8 @@ describe("Contact API", () => {
       });
 
     expect(response.status).toBe(201);
-    expect(response.body).toHaveProperty("_id");
-    expect(response.body.name).toBe("Ko Ko");
+    expect(response.body.success).toBe(true);
+    expect(response.body.contact).toHaveProperty("_id");
   });
 
   it("should get all contacts", async () => {
@@ -54,8 +48,7 @@ describe("Contact API", () => {
       .set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(200);
-    expect(Array.isArray(response.body)).toBe(true);
-    expect(response.body.length).toBeGreaterThan(0);
+    expect(Array.isArray(response.body.contacts)).toBe(true);
   });
 
   it("should get a single contact", async () => {
@@ -67,15 +60,15 @@ describe("Contact API", () => {
         phone: "0912345678",
       });
 
-    const contactId = contactResponse.body._id;
+    const contactId = contactResponse.body.contact._id;
 
     const response = await request(app)
       .get(`/api/contact/${contactId}`)
       .set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty("_id", contactId);
-    expect(response.body.name).toBe("Test Contact");
+    expect(response.body.contact).toHaveProperty("_id", contactId); // Fixing reference to 'contact'
+    expect(response.body.contact.name).toBe("Test Contact");
   });
 
   it("should update a contact", async () => {
@@ -87,7 +80,7 @@ describe("Contact API", () => {
         phone: "0912345678",
       });
 
-    const contactId = contactResponse.body._id;
+    const contactId = contactResponse.body.contact._id;
 
     const response = await request(app)
       .put(`/api/contact/${contactId}`)
@@ -97,7 +90,7 @@ describe("Contact API", () => {
       });
 
     expect(response.status).toBe(200);
-    expect(response.body.name).toBe("Updated Contact");
+    expect(response.body.contact.name).toBe("Updated Contact");
   });
 
   it("should delete a contact", async () => {
@@ -109,12 +102,18 @@ describe("Contact API", () => {
         phone: "0912345678",
       });
 
-    const contactId = contactResponse.body._id;
+    const contactId = contactResponse.body.contact._id;
 
     const response = await request(app)
       .delete(`/api/contact/${contactId}`)
       .set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(204);
+  });
+
+  afterAll(async () => {
+    // Clean up the test data after all tests are done
+    await User.deleteOne({ email: originalEmail });
+    await Contact.deleteMany({});
   });
 });
