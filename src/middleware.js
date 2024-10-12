@@ -1,7 +1,7 @@
 // src/middleware.js
 const { validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
-const { TokenBlacklist } = require("./models");
+const { User } = require("./models");
 
 // Middleware for authentication
 const authenticate = async (req, res, next) => {
@@ -14,26 +14,33 @@ const authenticate = async (req, res, next) => {
   // Extract Bearer token from the authorization header
   const bearerToken = token.split(" ")[1];
 
-  // Check if the token is blacklisted
-  const blacklisted = await TokenBlacklist.findOne({ token: bearerToken });
-  if (blacklisted) {
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized, Login Again",
-    });
-  }
+  try {
+    // Verify the token
+    const decoded = jwt.verify(bearerToken, process.env.JWT_SECRET);
 
-  jwt.verify(bearerToken, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
+    // Check if the user account is marked as deleted
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
       return res
-        .status(401)
-        .json({ success: false, message: "Unauthorized, invalid token" });
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
-    // Store the user ID from the decoded token into the request object
+    if (user.isDeleted) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized, account deleted" });
+    }
+
+    // Store the user ID in the request object for later use
     req.userId = decoded.id;
     next();
-  });
+  } catch (err) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Unauthorized, invalid token" });
+  }
 };
 
 // Middleware for input validation
@@ -53,7 +60,7 @@ const validate = (req, res, next) => {
 
 // Middleware for error handling
 const errorHandler = (err, req, res, next) => {
-  console.error("Error Handler:", err.message); // Log the error message
+  console.error("Error Handler:", err); // Log the error message
 
   // Set the response status code based on the error type
   const statusCode = err.statusCode || 500;

@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { User, Contact, TokenBlacklist } = require("../models");
+const { User, Contact } = require("../models");
 
 // Register a new user
 exports.registerUser = async (req, res, next) => {
@@ -52,9 +52,13 @@ exports.loginUser = async (req, res, next) => {
     }
 
     // Create token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(
+      { id: user._id, isDeleted: false },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
 
     res.status(200).json({ success: true, token });
   } catch (error) {
@@ -128,6 +132,7 @@ exports.getUserInfo = async (req, res, next) => {
 // Delete user account
 exports.deleteUserAccount = async (req, res, next) => {
   try {
+    // Find the user by their ID
     const user = await User.findById(req.userId);
     if (!user) {
       return res
@@ -135,18 +140,23 @@ exports.deleteUserAccount = async (req, res, next) => {
         .json({ success: false, message: "User not found" });
     }
 
-    // Blacklist the token
-    const token = req.headers["authorization"].split(" ")[1];
-    const blacklistedToken = new TokenBlacklist({ token });
-    await blacklistedToken.save();
+    // Step 1: Mark the user as deleted (soft delete)
+    console.log("144", user);
+    user.isDeleted = true;
+    await user.save();
+    console.log("147", user);
 
-    // Delete all contacts associated with the user
+    // Step 2: Delete all contacts associated with the user
     await Contact.deleteMany({ userId: req.userId });
 
-    // Delete the user account
+    // Step 3: Fully delete the user account from the database
     await User.deleteOne({ _id: req.userId });
 
-    res.status(204).end();
+    // Respond with a success message
+    res.status(200).json({
+      success: true,
+      message: "User account and associated contacts deleted successfully",
+    });
   } catch (error) {
     next(error);
   }
