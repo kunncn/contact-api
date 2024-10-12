@@ -47,7 +47,13 @@ router.post(
 
 router.get("/api/contact", authenticate, getContacts);
 router.get("/api/contact/:id", authenticate, getContact);
-router.put("/api/contact/:id", authenticate, updateContact);
+router.put(
+  "/api/contact/:id",
+  authenticate,
+  editAccountValidationRules(),
+  validate,
+  updateContact
+);
 router.delete("/api/contact/:id", authenticate, deleteContact);
 
 module.exports = router;

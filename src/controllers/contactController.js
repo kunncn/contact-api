@@ -72,7 +72,5 @@ exports.deleteContact = async (req, res) => {
   }
 
   await Contact.deleteOne({ _id: req.params.id, userId: req.userId });
-  res
-    .status(204)
-    .json({ success: true, message: "Contact deleted successfully" });
+  res.status(204).end();
 };

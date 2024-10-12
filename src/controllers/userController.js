@@ -3,57 +3,67 @@ const jwt = require("jsonwebtoken");
 const { User } = require("../models");
 
 // Register a new user
-exports.registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+exports.registerUser = async (req, res, next) => {
+  try {
+    const { name, email, password } = req.body;
 
-  // Check if user already exists
-  const existingUser = await User.findOne({ email });
-  if (existingUser) {
-    return res
-      .status(400)
-      .json({ success: false, message: "User already exists" });
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User already exists" });
+    }
+
+    // Hash password
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // Create user
+    const newUser = new User({ name, email, passwordHash });
+    await newUser.save();
+
+    res
+      .status(201)
+      .json({ success: true, message: `User ${name} created successfully` });
+  } catch (error) {
+    next(error);
   }
-
-  // Hash password
-  const passwordHash = await bcrypt.hash(password, 10);
-
-  // Create user
-  const newUser = new User({ name, email, passwordHash });
-  await newUser.save();
-
-  res
-    .status(201)
-    .json({ success: true, message: `User ${name} created successfully` });
 };
 
 // User login
-exports.loginUser = async (req, res) => {
-  const { email, password } = req.body;
+exports.loginUser = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
 
-  // Find user
-  const user = await User.findOne({ email });
-  if (!user) {
-    return res.status(400).json({ success: false, message: "Invalid Email." });
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid Email." });
+    }
+
+    // Check password
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isValid) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid Password." });
+    }
+
+    // Create token
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    res.status(200).json({ success: true, token });
+  } catch (error) {
+    next(error);
   }
-
-  // Check password
-  const isValid = await bcrypt.compare(password, user.passwordHash);
-  if (!isValid) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Invalid Password." });
-  }
-
-  // Create token
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "1h",
-  });
-
-  res.status(200).json({ success: true, token });
 };
 
 // Controller to edit user account
-exports.editUserAccount = async (req, res) => {
+exports.editUserAccount = async (req, res, next) => {
   try {
     const user = await User.findById(req.userId);
     if (!user) {
@@ -78,8 +88,7 @@ exports.editUserAccount = async (req, res) => {
       message: "Account updated successfully", // Fixed message
       user,
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
+  } catch (error) {
+    next(error);
   }
 };

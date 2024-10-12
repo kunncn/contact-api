@@ -31,7 +31,7 @@ const validate = (req, res, next) => {
     return res.status(400).json({
       success: false,
       errors: errors.array(),
-      message: `${errors.array()[0].msg} and Your input is ${
+      message: `${errors.array()[0].msg}. Your ${errors.array()[0].path} is ${
         errors.array()[0].value
       }`,
     });
@@ -41,8 +41,15 @@ const validate = (req, res, next) => {
 
 // Middleware for error handling
 const errorHandler = (err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ success: false, message: "Internal Server Error" });
+  console.error("Error Handler:", err.message); // Log the error message
+
+  // Set the response status code based on the error type
+  const statusCode = err.statusCode || 500;
+
+  res.status(statusCode).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
 };
 
 module.exports = { validate, errorHandler, authenticate };
