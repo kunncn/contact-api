@@ -87,6 +87,7 @@ describe("Contact API", () => {
       .set("Authorization", `Bearer ${token}`)
       .send({
         name: "Updated Contact",
+        phone: "0123456789",
       });
 
     expect(response.status).toBe(200);

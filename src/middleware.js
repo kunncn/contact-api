@@ -1,9 +1,10 @@
 // src/middleware.js
 const { validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
+const { TokenBlacklist } = require("./models");
 
 // Middleware for authentication
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
   const token = req.headers["authorization"];
 
   if (!token) {
@@ -13,9 +14,20 @@ const authenticate = (req, res, next) => {
   // Extract Bearer token from the authorization header
   const bearerToken = token.split(" ")[1];
 
+  // Check if the token is blacklisted
+  const blacklisted = await TokenBlacklist.findOne({ token: bearerToken });
+  if (blacklisted) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized, Login Again",
+    });
+  }
+
   jwt.verify(bearerToken, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(401).json({ message: "Unauthorized, invalid token" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized, invalid token" });
     }
 
     // Store the user ID from the decoded token into the request object

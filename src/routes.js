@@ -11,6 +11,8 @@ const {
   registerUser,
   loginUser,
   editUserAccount,
+  getUserInfo,
+  deleteUserAccount, // Import the deleteUserAccount controller
 } = require("./controllers/userController");
 const {
   userValidationRules,
@@ -26,6 +28,12 @@ router.post("/api/register", userValidationRules(), validate, registerUser);
 
 // Login
 router.post("/api/login", loginValidationRules(), validate, loginUser);
+
+// Get user info route
+router.get("/api/account", authenticate, getUserInfo); // Add this route
+
+// Delete user account route
+router.delete("/api/account", authenticate, deleteUserAccount); // Add this route
 
 // Edit user account route
 router.put(
@@ -50,7 +58,7 @@ router.get("/api/contact/:id", authenticate, getContact);
 router.put(
   "/api/contact/:id",
   authenticate,
-  editAccountValidationRules(),
+  contactValidationRules(),
   validate,
   updateContact
 );

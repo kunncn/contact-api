@@ -25,12 +25,6 @@ describe("User API", () => {
     token = loginResponse.body.token;
   });
 
-  afterAll(async () => {
-    // Clean up the test data after all tests are done
-    await User.deleteOne({ email: newEmail });
-    await User.deleteOne({ email: originalEmail });
-  });
-
   it("should edit account information", async () => {
     newEmail = `updateduser-${Date.now()}@example.com`;
 
@@ -49,5 +43,11 @@ describe("User API", () => {
     );
     expect(response.body.user).toHaveProperty("name", "Updated Test User");
     expect(response.body.user).toHaveProperty("email", newEmail);
+  });
+
+  afterAll(async () => {
+    // Clean up the test data after all tests are done
+    await User.deleteOne({ email: newEmail });
+    await User.deleteOne({ email: originalEmail });
   });
 });

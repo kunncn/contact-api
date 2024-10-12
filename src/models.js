@@ -21,8 +21,15 @@ const contactSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
+// Token Blacklist Schema
+const tokenBlacklistSchema = new mongoose.Schema({
+  token: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now, expires: "1h" }, // Optional: Automatically delete after 1 hour
+});
+
 // Export Models
 const User = mongoose.model("User", userSchema);
 const Contact = mongoose.model("Contact", contactSchema);
+const TokenBlacklist = mongoose.model("TokenBlacklist", tokenBlacklistSchema);
 
-module.exports = { User, Contact };
+module.exports = { User, Contact, TokenBlacklist };

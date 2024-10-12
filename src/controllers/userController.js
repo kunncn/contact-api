@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { User } = require("../models");
+const { User, Contact, TokenBlacklist } = require("../models");
 
 // Register a new user
 exports.registerUser = async (req, res, next) => {
@@ -88,6 +88,65 @@ exports.editUserAccount = async (req, res, next) => {
       message: "Account updated successfully", // Fixed message
       user,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get user info
+exports.getUserInfo = async (req, res, next) => {
+  try {
+    // Find the user by ID
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Count the number of contacts associated with the user
+    const contactCount = await Contact.countDocuments({ userId: user._id });
+
+    // Return the user info along with the contact count
+    res.status(200).json({
+      success: true,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        contactCount: contactCount,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Delete user account
+exports.deleteUserAccount = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Blacklist the token
+    const token = req.headers["authorization"].split(" ")[1];
+    const blacklistedToken = new TokenBlacklist({ token });
+    await blacklistedToken.save();
+
+    // Delete all contacts associated with the user
+    await Contact.deleteMany({ userId: req.userId });
+
+    // Delete the user account
+    await User.deleteOne({ _id: req.userId });
+
+    res.status(204).end();
   } catch (error) {
     next(error);
   }
